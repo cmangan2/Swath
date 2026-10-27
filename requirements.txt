@@ -1,0 +1,6 @@
+flask>=3.0
+requests>=2.31
+gunicorn>=21.2
+psycopg[binary]>=3.2
+pyshp>=2.3
+reportlab>=4.0
