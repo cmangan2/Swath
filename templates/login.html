@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Swath · Sign in</title><link rel="stylesheet" href="/static/app.css?v={{ version }}"><link rel="icon" href="/static/icon-192.png"></head>
+<body class="login">
+<form method="post" class="card">
+  <img src="/static/icon-192.png" alt="" width="64" height="64">
+  <h1>Swath</h1>
+  <label>Password <input type="password" name="password" autofocus autocomplete="current-password"></label>
+  {% if err %}<p class="err">{{ err }}</p>{% endif %}
+  <button class="primary" type="submit">Sign in</button>
+</form>
+</body></html>

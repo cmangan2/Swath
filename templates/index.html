@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="app-version" content="{{ version }}">
+<meta name="theme-color" content="#1f5f3a">
+<title>Swath</title>
+<link rel="manifest" href="/static/manifest.json">
+<link rel="icon" href="/static/icon-192.png">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+<link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="/static/vendor/leaflet-draw/leaflet.draw.css">
+<link rel="stylesheet" href="/static/app.css?v={{ version }}">
+</head>
+<body>
+<header>
+  <div class="brand"><img src="/static/icon-192.png" alt=""><span>Swath</span></div>
+  <nav id="tabs">
+    <button data-tab="now" class="active">Now</button>
+    <button data-tab="plan">Plan</button>
+    <button data-tab="fields">Fields</button>
+    <button data-tab="jobs">Jobs</button>
+    <button data-tab="records">Records</button>
+    <button data-tab="settings">Settings</button>
+  </nav>
+</header>
+<main>
+  <div id="map"></div>
+  <section id="panel">
+    <div id="banner" class="banner hidden"></div>
+
+    <div class="tab" id="tab-now">
+      <div class="row between"><h2>Go / no-go now</h2><button class="ghost" onclick="loadNow(true)">↻ Refresh</button></div>
+      <p class="muted small" id="nowMeta"></p>
+      <div id="nowList"></div>
+      <p class="fine">Forecast-based guidance. Check conditions on site before every flight. The product label always governs.</p>
+    </div>
+
+    <div class="tab hidden" id="tab-plan">
+      <h2>Plan a day</h2>
+      <div class="row wrap">
+        <label>Day <select id="planDate"></select></label>
+        <label>Crew <input id="planStart" type="time"> – <input id="planEnd" type="time"></label>
+        <label>Acres/hour <input id="planRate" type="number" min="1" step="1" class="w5"></label>
+      </div>
+      <div class="row wrap small">
+        <label class="check"><input type="checkbox" id="planPause"> Pause through short no-go spells</label>
+        <label class="check"><input type="checkbox" id="planCaution"> Allow CAUTION hours</label>
+      </div>
+      <details id="planJobsBox"><summary>Jobs to consider (<span id="planJobCount">0</span>)</summary><div id="planJobs"></div></details>
+      <button class="primary" id="planBtn" onclick="runPlan()">Plan day</button>
+      <div id="planOut"></div>
+    </div>
+
+    <div class="tab hidden" id="tab-fields">
+      <div class="row between"><h2>Fields</h2>
+        <div class="row">
+          <button onclick="startDraw('field')">+ Draw</button>
+          <label class="button">Import<input type="file" id="importFile" accept=".geojson,.json,.kml,.kmz,.zip" hidden onchange="importFile(this)"></label>
+        </div>
+      </div>
+      <div id="fieldList"></div>
+      <div class="row between mt"><h3>Sensitive areas</h3><button onclick="startDraw('sensitive')">+ Draw</button></div>
+      <p class="muted small">Apiaries, organic or susceptible crops, homes, schools, water. A field is NO-GO while the wind blows from it toward one inside its buffer.</p>
+      <div id="sensList"></div>
+      <div class="row between mt"><h3>Customers</h3><button onclick="editCustomer()">+ Customer</button></div>
+      <div id="custList"></div>
+    </div>
+
+    <div class="tab hidden" id="tab-jobs">
+      <div class="row between"><h2>Open jobs</h2><button class="primary" onclick="editJob()">+ Job</button></div>
+      <div id="jobList"></div>
+    </div>
+
+    <div class="tab hidden" id="tab-records">
+      <h2>Application records</h2>
+      <div class="row wrap">
+        <label>From <input type="date" id="recFrom"></label>
+        <label>To <input type="date" id="recTo"></label>
+        <button onclick="loadRecords()">Show</button>
+      </div>
+      <div class="row wrap">
+        <button onclick="exportRecords('csv')">⬇ CSV</button>
+        <button onclick="exportRecords('pdf')">⬇ PDF</button>
+        <a class="button ghost" href="/api/backup">⬇ Full backup (JSON)</a>
+      </div>
+      <div id="recList"></div>
+      <p class="fine">Part 137 §137.71: keep each record at least 12 months at your home base; your state may require more items and a longer period.</p>
+    </div>
+
+    <div class="tab hidden" id="tab-settings">
+      <h2>Settings</h2>
+      <h3>Operator</h3><div id="opForm"></div>
+      <h3>Crew &amp; planner</h3><div id="crewForm"></div>
+      <h3>Spray limits</h3>
+      <p class="muted small">Defaults are common guidance, not label language. Set them to the strictest label you fly.</p>
+      <div id="limForm"></div>
+      <div class="row between mt"><h3>Pilots</h3><button onclick="editPilot()">+ Pilot</button></div><div id="pilotList"></div>
+      <div class="row between mt"><h3>Aircraft</h3><button onclick="editAircraft()">+ Aircraft</button></div><div id="acList"></div>
+      <p class="fine">Swath v{{ version }} · <a href="/logout">Sign out</a></p>
+    </div>
+  </section>
+</main>
+
+<div id="drawBar" class="drawbar hidden"><span id="drawMsg"></span><span id="drawBtns"><button onclick="undoPoint()">Undo point</button><button class="primary" onclick="finishDraw()">Finish</button></span><button onclick="cancelDraw()">Cancel</button></div>
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true"><div class="sheet"><div id="modalBody"></div></div></div>
+<div id="toast" class="toast hidden"></div>
+
+<script src="/static/vendor/leaflet/leaflet.js"></script>
+<script src="/static/vendor/leaflet-draw/leaflet.draw.js"></script>
+<script>const CURRENT_VERSION = "{{ version }}";</script>
+<script src="/static/app.js?v={{ version }}"></script>
+</body>
+</html>

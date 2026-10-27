@@ -11,7 +11,7 @@ PRIORITY_WEIGHT = {1: 1.0, 2: 2.0, 3: 4.0}     # normal, high, urgent
 DEFAULT_CREW = {
     "base_lat": None, "base_lon": None, "start": "06:00", "end": "19:00",
     "acres_per_hour": 40.0, "setup_min": 20.0, "road_mph": 45.0, "detour": 1.3,
-    "allow_pause": True, "allow_caution": False,
+    "allow_pause": True, "max_pause_min": 60.0, "allow_caution": False,
 }
 
 
@@ -44,6 +44,7 @@ class Plan:
         self.speed = max(1e-6, float(c["road_mph"]))
         self.detour = float(c["detour"])
         self.pause = bool(c["allow_pause"])
+        self.max_pause = max(0, int(float(c.get("max_pause_min") or 0) // SLOT_MIN))   # idle slots allowed inside one job
         self.k = {}       # spray slots needed
         self.usable_pos = {}
         self.runs = {}
@@ -81,10 +82,10 @@ class Plan:
         k = self.k[jid]
         if self.pause:
             pos = self.usable_pos[jid]
-            i = bisect.bisect_left(pos, t)
-            if i + k - 1 >= len(pos):
-                return None
-            return pos[i], pos[i + k - 1] + 1
+            for i in range(bisect.bisect_left(pos, t), len(pos) - k + 1):
+                if pos[i + k - 1] + 1 - pos[i] - k <= self.max_pause:   # idle slots between first and last usable slot
+                    return pos[i], pos[i + k - 1] + 1
+            return None
         run = self.runs[jid]
         for s in range(t, self.end_slot - k + 1):
             if run[s] >= k:
@@ -197,6 +198,9 @@ class Plan:
             avail = len([s for s in self.usable_pos[jid] if s * SLOT_MIN >= self.start])
             if avail < k:
                 return f"Only {avail * SLOT_MIN / 60:.1f} h of usable weather in crew hours; needs {k * SLOT_MIN / 60:.1f} h"
+            if self.spray(jid, self.start) is None:
+                return (f"Usable hours are too broken up: needs {k * SLOT_MIN / 60:.1f} h with no more than "
+                        f"{self.max_pause * SLOT_MIN} min of pauses")
         else:
             longest = max([self.runs[jid][s] for s in range(self.start // SLOT_MIN, self.end_slot)] or [0])
             if longest < k:

@@ -1,6 +1,6 @@
 """Geometry: field area, distances, bearings, drift-toward-sensitive-area sectors, and boundary file import.
 All bearings are TRUE degrees clockwise from north. Geometries are GeoJSON dicts (lon, lat order), Polygon or MultiPolygon."""
-import io, json, math, re, zipfile
+import io, json, math, zipfile
 import xml.etree.ElementTree as ET
 
 R_EARTH_M = 6371008.8
@@ -406,7 +406,3 @@ def valid_geometry(geom):
     except ImportError_:
         return None
     return g
-
-
-def slug(s):
-    return re.sub(r"[^a-z0-9]+", "-", (s or "").lower()).strip("-")

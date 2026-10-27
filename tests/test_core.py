@@ -168,9 +168,11 @@ def test_planner_matches_brute_force():
 def test_planner_respects_windows_and_pause():
     jobs = [{"id": 1, "name": "A", "lat": 41.6, "lon": -93.6, "acres": 80, "priority": 1}]   # 2 h at 40 ac/h
     usable = {1: _usable([(8, 9), (11, 12)])}
-    res = planner.plan_day(jobs, usable, {"allow_pause": True, "setup_min": 0})
+    res = planner.plan_day(jobs, usable, {"allow_pause": True, "setup_min": 0, "max_pause_min": 120})
     st = res["stops"][0]
     assert st["start_txt"] == "08:00" and st["finish_txt"] == "12:00" and st["paused"] == 120
+    res = planner.plan_day(jobs, usable, {"allow_pause": True, "setup_min": 0, "max_pause_min": 60})
+    assert res["stops"] == [] and "broken up" in res["unscheduled"][0]["reason"]
     res = planner.plan_day(jobs, usable, {"allow_pause": False, "setup_min": 0})
     assert res["stops"] == [] and "unbroken" in res["unscheduled"][0]["reason"]
 

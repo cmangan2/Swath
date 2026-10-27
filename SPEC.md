@@ -44,7 +44,7 @@ so every acre is sprayed inside a legal, low-drift weather window. Records come 
 Time is discretized into 5-minute slots over the planning day. For job *j* at field *f*: duration
 `d_j = acres_j / rate × 60 + setup_min` (rounded up to slots). `go_f[t]` is true when the slot is GO (or CAUTION, if the operator allows it).
 - **Continuous mode**: a job must run in one unbroken run of usable slots. `next_start_j[t]` = first `s ≥ t` with `go_f[s..s+d_j-1]` all true.
-- **Pause mode**: the crew stays on the field and sprays only in usable slots; finish = first slot where the count of usable slots since arrival reaches `d_j`.
+- **Pause mode**: the crew stays on the field and sprays only in usable slots, with at most `max_pause_min` of idle time inside the job; finish = end of the first run of `d_j` usable slots whose gaps fit that cap.
 Both are precomputed per job in O(T), so simulating a route is O(n).
 Travel: great-circle distance × detour factor ÷ road speed.
 Search (orienteering problem with time windows): greedy insertion by value per added minute, then local search
@@ -61,7 +61,7 @@ Search (orienteering problem with time windows): greedy insertion by value per a
 | Inversion | no-go when T80m − T2m ≥ 1.5 °F and wind < 6 mph; caution ≥ 0.5 °F |
 | Rain | no-go if ≥ 0.02 in in the hour or within 2 h after; probability no-go ≥ 60 %, caution ≥ 30 % |
 | Sensitive areas | no-go when wind blows toward one within its buffer, ±45°; caution ±70° |
-| Crew | 6:00–19:00, 40 ac/h, 20 min setup, 45 mph roads, detour ×1.3, pause allowed |
+| Crew | 6:00–19:00, 40 ac/h, 20 min setup, 45 mph roads, detour ×1.3, pauses inside a job ≤ 60 min |
 
 ## Data source
 Open-Meteo hourly forecast (`best_match` model), 9 variables, `timezone=auto`, unix time, 3 days. Locations are batched into one
